@@ -1,6 +1,6 @@
 # radiotap
 
-[![crates.io](https://img.shields.io/crates/v/radiotap.svg)](https://crates.io/crates/radiotap)
+[![crates.io](https://img.shields.io/crates/v/radiotap.svg?longCache=true&colorB=4d76ae)](https://crates.io/crates/radiotap)
 [![docs.rs](https://docs.rs/radiotap/badge.svg)](https://docs.rs/radiotap)
 
 A parser for the [Radiotap](http://www.radiotap.org/) capture format.

@@ -1,6 +1,6 @@
 //! Extended Radiotap field definitions and parsers.
 
-use {Error, Result};
+use super::*;
 
 const HT_RATE: [[f32; 4]; 32] = [
     // 20 MHz LGI,20 MHz SGI,40 MHZ LGI,40 MHz SGI
@@ -125,13 +125,13 @@ const VHT_RATE: [[f32; 8]; 80] = [
 /// Returns the 802.11n data rate based on the MCS index, bandwidth, and guard interval.
 pub fn ht_rate(index: u8, bw: Bandwidth, gi: GuardInterval) -> Result<f32> {
     if index > 31 {
-        return Err(Error::InvalidFormat);
+        bail!("invalid HT MCS index {}", index)
     }
 
     let b = match bw.bandwidth {
         20 => 0,
         40 => 2,
-        _ => return Err(Error::InvalidFormat),
+        o => bail!("invalid HT bandwidth {}", o),
     };
 
     let col = b + (if gi == GuardInterval::Short { 1 } else { 0 });
@@ -139,11 +139,15 @@ pub fn ht_rate(index: u8, bw: Bandwidth, gi: GuardInterval) -> Result<f32> {
     Ok(HT_RATE[index as usize][col])
 }
 
-/// Returns the 802.11ac data rate based on the MCS index, bandwidth, guard interval, and number
-/// of spatial streams.
+/// Returns the 802.11ac data rate based on the MCS index, bandwidth, guard interval, and number of
+/// spatial streams.
 pub fn vht_rate(index: u8, bw: Bandwidth, gi: GuardInterval, nss: u8) -> Result<f32> {
-    if index > 9 || nss > 8 {
-        return Err(Error::InvalidFormat);
+    if index > 9 {
+        bail!("invalid VHT MCS index {}", index)
+    }
+
+    if nss > 8 {
+        bail!("invalid VHT NSS {}", index)
     }
 
     let b = match bw.bandwidth {
@@ -151,7 +155,7 @@ pub fn vht_rate(index: u8, bw: Bandwidth, gi: GuardInterval, nss: u8) -> Result<
         40 => 2,
         80 => 4,
         160 => 6,
-        _ => return Err(Error::InvalidFormat),
+        o => bail!("invalid VHT bandwidth {}", o),
     };
 
     let col = b + (if gi == GuardInterval::Short { 1 } else { 0 });
@@ -159,14 +163,20 @@ pub fn vht_rate(index: u8, bw: Bandwidth, gi: GuardInterval, nss: u8) -> Result<
 
     let rate = VHT_RATE[row as usize][col];
     if rate < 0.0 {
-        return Err(Error::InvalidFormat);
+        bail!(
+            "invalid VHT datarate combination: index={}, bandwith={:?}, gi={:?}, nss={}",
+            index,
+            bw,
+            gi,
+            nss
+        )
     }
 
     Ok(rate)
 }
 
 /// Flags describing the channel.
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct ChannelFlags {
     /// Turbo channel.
     pub turbo: bool,
@@ -187,7 +197,7 @@ pub struct ChannelFlags {
 }
 
 /// Extended flags describing the channel.
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct XChannelFlags {
     /// Turbo channel.
     pub turbo: bool,
@@ -222,7 +232,7 @@ pub struct XChannelFlags {
 }
 
 /// Struct containing the bandwidth, sideband, and sideband index.
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct Bandwidth {
     /// The bandwidth in MHz.
     pub bandwidth: u8,
@@ -261,9 +271,7 @@ impl Bandwidth {
             23 => (160, Some(20), Some(5)),
             24 => (160, Some(20), Some(6)),
             25 => (160, Some(20), Some(7)),
-            _ => {
-                return Err(Error::InvalidFormat);
-            }
+            v => bail!("invalid bandwidth {}", v),
         };
         Ok(Bandwidth {
             bandwidth,
@@ -273,14 +281,14 @@ impl Bandwidth {
     }
 }
 
-/// Represents a [VHT](../struct.VHT.html) user, the [VHT](../struct.VHT.html) encodes the MCS and
+/// Represents a [Vht](../struct.Vht.html) user, the [Vht](../struct.Vht.html) encodes the MCS and
 /// NSS for up to four users.
 #[derive(Clone, Copy, Debug, PartialEq)]
-pub struct VHTUser {
+pub struct VhtUser {
     /// The 802.11ac MCS index.
     pub index: u8,
     /// The FEC type.
-    pub fec: FEC,
+    pub fec: Fec,
     /// Number of spatial streams (range 1 - 8).
     pub nss: u8,
     /// Number of space-time streams (range 1 - 16).
@@ -290,7 +298,7 @@ pub struct VHTUser {
 }
 
 /// The guard interval.
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum GuardInterval {
     /// 800 ns.
     Long,
@@ -299,23 +307,23 @@ pub enum GuardInterval {
 }
 
 /// Forward error correction type.
-#[derive(Clone, Copy, Debug, PartialEq)]
-pub enum FEC {
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum Fec {
     /// Binary convolutional coding.
-    BCC,
+    Bcc,
     /// Low-density parity-check.
-    LDPC,
+    Ldpc,
 }
 
 /// The HT format.
-#[derive(Clone, Copy, Debug, PartialEq)]
-pub enum HTFormat {
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum HtFormat {
     Mixed,
     Greenfield,
 }
 
 /// The time unit of the [Timestamp](../struct.Timestamp.html).
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum TimeUnit {
     Milliseconds,
     Microseconds,
@@ -328,32 +336,30 @@ impl TimeUnit {
             0 => TimeUnit::Milliseconds,
             1 => TimeUnit::Microseconds,
             2 => TimeUnit::Nanoseconds,
-            _ => {
-                return Err(Error::InvalidFormat);
-            }
+            v => bail!("invalid time unit {}", v),
         })
     }
 }
 
 /// The sampling position of the [Timestamp](../struct.Timestamp.html).
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum SamplingPosition {
-    StartMPDU,
-    StartPLCP,
-    EndPPDU,
-    EndMPDU,
+    StartMpdu,
+    StartPlcp,
+    EndPpdu,
+    EndMpdu,
     Unknown,
 }
 
 impl SamplingPosition {
     pub fn from(value: u8) -> Result<SamplingPosition> {
         Ok(match value {
-            0 => SamplingPosition::StartMPDU,
-            1 => SamplingPosition::StartPLCP,
-            2 => SamplingPosition::EndPPDU,
-            3 => SamplingPosition::EndMPDU,
+            0 => SamplingPosition::StartMpdu,
+            1 => SamplingPosition::StartPlcp,
+            2 => SamplingPosition::EndPpdu,
+            3 => SamplingPosition::EndMpdu,
             15 => SamplingPosition::Unknown,
-            _ => return Err(Error::InvalidFormat),
+            v => bail!("invalid sampling position {}", v),
         })
     }
 }

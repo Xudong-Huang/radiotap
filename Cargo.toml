@@ -11,7 +11,9 @@ repository = "https://github.com/rossmacarthur/radiotap"
 
 [dependencies]
 byteorder = "1.2"
-quick-error = "1.2"
+failure = "0.1.1"
+failure_derive = "0.1.1"
+display_derive = "0.0.0"
 
 [dev-dependencies]
 pcap = "0.7"
