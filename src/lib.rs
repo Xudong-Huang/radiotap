@@ -47,7 +47,7 @@
 //! }
 //! ```
 
-
+extern crate bitops;
 extern crate byteorder;
 #[macro_use]
 extern crate display_derive;
@@ -57,7 +57,6 @@ extern crate failure;
 pub mod error;
 pub mod field;
 pub mod ns;
-mod util;
 
 use failure::ResultExt;
 use std::collections::HashMap;
@@ -67,7 +66,6 @@ use std::result;
 use error::*;
 use field::*;
 use ns::*;
-use util::*;
 
 /// A return type to use across this crate.
 pub type Result<T> = result::Result<T, failure::Error>;
