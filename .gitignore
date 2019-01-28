@@ -3,5 +3,6 @@
 **/*.rs.bk
 Cargo.lock
 
-# Visual Studio Code
-.vscode/
+# VisualStudioCode
+.vscode/*
+.history

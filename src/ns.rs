@@ -9,18 +9,21 @@ use super::{Oui, Result};
 
 /// A namespace in the Radiotap capture format.
 ///
-/// The default namespace Radiotap implements this trait. To implement a vendor namespace you can
-/// use this trait.
+/// The default namespace Radiotap implements this trait.
 pub trait Namespace {
     /// This defines the kinds of fields in a namespace, it is typically implemented as an enum.
     type Kind: NamespaceKind;
 
-    /// Returns the vendor OUI for this namespace. This needs to be unique. The default Radiotap
-    /// namespace returns None here.
-    fn oui() -> Option<Oui>;
-
     /// Update this object with the field for the given field kind and relevant data.
     fn update(&mut self, kind: Self::Kind, data: &[u8]) -> Result<()>;
+}
+
+/// A vendor namespace in the Radiotap capture format.
+///
+/// To implement a vendor namespace you should implement this trait.
+pub trait VendorNamespace: Namespace {
+    /// Returns the vendor OUI for this namespace. This needs to be unique.
+    fn oui() -> Oui;
 }
 
 /// The kind of field contained in the namespace.
@@ -28,7 +31,7 @@ pub trait Namespace {
 /// This defines the kinds of fields in a namespace. This trait is typically implemented as an enum.
 /// Each field kind needs to define an field align size and field size.
 pub trait NamespaceKind: Sized {
-    /// Constructor to create the kind from the bit number.
+    /// Creates the kind from a bit number.
     fn from_bit(value: u8) -> Result<Self>;
 
     /// Returns the align value for this kind of field.
