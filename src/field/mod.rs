@@ -176,7 +176,8 @@ impl Field for Header {
                                 kinds.push(kind);
                             }
                             Err(Error::UnsupportedField) => {
-                                // Does not matter, we will just parse the ones we can
+                                // Does not matter, we will just parse the ones
+                                // we can
                             }
                             Err(e) => return Err(e),
                         }

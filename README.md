@@ -64,10 +64,11 @@ for element in RadiotapIterator::from_bytes(&capture).unwrap() {
 
 ## License
 
-This project is dual licensed under the Apache 2.0 License and the MIT License.
+This project is licensed under either of
 
-See [LICENSE-APACHE](LICENSE-APACHE) and [LICENSE-MIT](LICENSE-MIT) for more
-details.
+- Apache License, Version 2.0, ([LICENSE-APACHE](LICENSE-APACHE) or
+  http://www.apache.org/licenses/LICENSE-2.0)
+- MIT license ([LICENSE-MIT](LICENSE-MIT) or http://opensource.org/licenses/MIT)
 
 [crates]: https://crates.io/crates/radiotap
 [docs]: https://docs.rs/radiotap
